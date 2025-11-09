@@ -1,5 +1,5 @@
 export interface MiWeb {
-  hero: {
+  header: {
     title: string;
     textColor: string;
     textFamily: string;

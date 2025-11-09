@@ -1,17 +1,17 @@
 import type { MiWeb } from "../../types/miWeb.js";
 
 export const validateMiWeb = (data: any): MiWeb => {
-  const hero = data.hero;
+  const header = data.header;
 
   if (
-    !hero ||
-    typeof hero.title !== "string" ||
-    typeof hero.textColor !== "string" ||
-    typeof hero.textFamily !== "string" ||
-    typeof hero.backgroundColor !== "string"
+    !header ||
+    typeof header.title !== "string" ||
+    typeof header.textColor !== "string" ||
+    typeof header.textFamily !== "string" ||
+    typeof header.backgroundColor !== "string"
   ) {
     throw new Error(
-      "[MODEL site] -> error -> Datos inválidos para heroSection"
+      "[MODEL site] -> error -> Datos inválidos para headerSection"
     );
   }
 
