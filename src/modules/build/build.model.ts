@@ -1,7 +1,7 @@
 import { db } from "../../config/firebase.js";
 import type { MiWeb } from "../../types/miWeb.js";
 
-export class PublishModel {
+export class BuildModel {
   /**
    * Devuelve el objeto miWeb de un usuario dado su uid.
    */

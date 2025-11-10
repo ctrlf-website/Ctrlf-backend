@@ -7,7 +7,7 @@ export function renderHTMLTemplate(miWeb: MiWeb): string {
   const header = miWeb.header;
 
   if (!header) {
-    throw new Error("[RENDERER publish] -> missing -> header section no definida");
+    throw new Error("[RENDERER build] -> missing -> header section no definida");
   }
 
   const { title, textColor, textFamily, backgroundColor } = header;
@@ -41,6 +41,6 @@ export function renderHTMLTemplate(miWeb: MiWeb): string {
   </html>
   `;
 
-  console.info(`[RENDERER publish] -> success -> HTML generado correctamente`);
+  console.info(`[RENDERER build] -> success -> HTML generado correctamente`);
   return html.trim();
 }
