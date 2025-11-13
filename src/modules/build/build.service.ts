@@ -1,5 +1,5 @@
-import { BuildModel } from "./build.model.js";
-import { renderHTMLTemplate } from "./build.render.js";
+import { BuildModel } from "./build.model";
+import { renderHTMLTemplate } from "./build.render";
 
 export class BuildService {
   static async buildUserSite(uid: string): Promise<string> {

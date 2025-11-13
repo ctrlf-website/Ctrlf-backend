@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import type { NodeEnv } from '../types/env.js';
+import type { NodeEnv } from '../types/env';
 
 interface Env {
   NODE_ENV: NodeEnv;

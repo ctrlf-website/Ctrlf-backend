@@ -1,4 +1,4 @@
-import type { MiWeb } from "../../types/miWeb.js";
+import type { MiWeb } from "../../types/miWeb";
 
 /**
  * Genera una plantilla HTML simple y ligera a partir del objeto MiWeb.

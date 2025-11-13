@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import env from './env.js';
+import env from './env';
 
 let firebaseApp: admin.app.App;
 

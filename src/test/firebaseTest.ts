@@ -1,4 +1,4 @@
-import { db, auth } from '../config/firebase.js';
+import { db, auth } from '../config/firebase';
 
 async function testFirebase() {
   console.log(`[TEST firebase] -> start -> Iniciando prueba de conexión...`);

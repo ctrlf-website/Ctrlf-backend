@@ -1,6 +1,6 @@
 import type { Response, NextFunction } from "express";
-import type { AuthenticatedRequest } from "../../middleware/authHandler.js";
-import { BuildService } from "./build.service.js";
+import type { AuthenticatedRequest } from "../../middleware/authHandler";
+import { BuildService } from "./build.service";
 
 export class BuildController {
   static async buildSite(

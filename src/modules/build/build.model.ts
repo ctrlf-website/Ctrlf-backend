@@ -1,5 +1,5 @@
-import { db } from "../../config/firebase.js";
-import type { MiWeb } from "../../types/miWeb.js";
+import { db } from "../../config/firebase";
+import type { MiWeb } from "../../types/miWeb";
 
 export class BuildModel {
   /**

@@ -1,5 +1,5 @@
 import type { NextFunction, Response, Request } from "express";
-import { admin, auth } from "../config/firebase.js";
+import { admin, auth } from "../config/firebase";
 /**
  * Extiende el tipo Request para incluir user decodificado
  */

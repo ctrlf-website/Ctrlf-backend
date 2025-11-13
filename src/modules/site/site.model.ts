@@ -1,4 +1,4 @@
-import type { MiWeb } from "../../types/miWeb.js";
+import type { MiWeb } from "../../types/miWeb";
 
 export const validateMiWeb = (data: any): MiWeb => {
   const header = data.header;

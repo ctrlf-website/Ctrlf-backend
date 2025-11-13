@@ -1,7 +1,6 @@
-// src/modules/site/site.routes.ts
 import { Router } from "express";
-import { SiteController } from "./site.controller.js";
-import { verifyFirebaseToken } from "../../middleware/authHandler.js";
+import { SiteController } from "./site.controller";
+import { verifyFirebaseToken } from "../../middleware/authHandler";
 
 const siteRouter = Router();
 

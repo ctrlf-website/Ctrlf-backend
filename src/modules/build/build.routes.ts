@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { BuildController} from "./build.controller.js";
-import { verifyFirebaseToken } from "../../middleware/authHandler.js";
+import { BuildController} from "./build.controller";
+import { verifyFirebaseToken } from "../../middleware/authHandler";
 
 const buildRouter = Router();
 
-buildRouter.get("/", verifyFirebaseToken, BuildController.buildSite)
+buildRouter.post("/", verifyFirebaseToken, BuildController.buildSite)
 
 export default buildRouter;

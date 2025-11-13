@@ -1,7 +1,7 @@
-import { SiteService } from "./site.service.js";
-import { validateMiWeb } from "./site.model.js";
+import { SiteService } from "./site.service";
+import { validateMiWeb } from "./site.model";
 import type { NextFunction, Response, Request } from "express";
-import type { AuthenticatedRequest } from "../../middleware/authHandler.js";
+import type { AuthenticatedRequest } from "../../middleware/authHandler";
 
 export class SiteController {
   static async getSite(

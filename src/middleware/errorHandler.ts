@@ -1,4 +1,3 @@
-// src/middlewares/errorHandler.ts
 import type { NextFunction, Response, Request } from "express";
 
 export function errorHandler(

@@ -1,4 +1,4 @@
-import { AuthModel, type UserData } from "./auth.model.js";
+import { AuthModel, type UserData } from "./auth.model";
 
 export class AuthService {
   static async registerUser(email: string, password: string, displayName?: string): Promise<UserData> {
@@ -10,7 +10,7 @@ export class AuthService {
     const decoded = await AuthModel.verifyUserToken(idToken);
 
     // opcional: obtener más info desde Firestore
-    const userDoc = await (await import("../../config/firebase.js")).db.collection("users").doc(decoded.uid).get();
+    const userDoc = await (await import("../../config/firebase")).db.collection("users").doc(decoded.uid).get();
     const userData = userDoc.exists ? userDoc.data() : {};
 
     return {
