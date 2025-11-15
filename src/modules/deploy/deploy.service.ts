@@ -141,12 +141,24 @@ export class DeployService {
       if (uploadRequiredHashes.includes(hash)) {
         // upload to `${uploadUrlBase}/${hash}`
         const uploadUrl = `${uploadUrlBase}/${hash}`;
+        // const uploadResp = await fetch(uploadUrl, {
+        //   method: "POST",
+        //   headers: {
+        //     Authorization: `Bearer ${accessToken}`,
+        //     "Content-Type": "application/octet-stream",
+        //     "Content-Encoding": "gzip",
+        //   },
+        //   body: gzipped,
+        // });
+
         const uploadResp = await fetch(uploadUrl, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/octet-stream",
             "Content-Encoding": "gzip",
+            "X-Goog-Upload-Protocol": "raw",
+            "X-Goog-Upload-Content-Length": gzipped.length.toString(),
           },
           body: gzipped,
         });
