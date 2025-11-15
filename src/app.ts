@@ -8,24 +8,47 @@ dotenv.config();
 
 const app = express();
 
-// ✅ CORS antes que cualquier otro middleware
+// // ✅ CORS antes que cualquier otro middleware
+// const allowedOrigins = [
+//   "http://localhost:5173",
+//   "http://localhost:3001",
+//   "https://ctrlf-website.github.io",
+// ];
+
+// app.use(
+//   cors({
+//     origin: allowedOrigins,
+//     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true,
+//   })
+// );
+
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3001",
-  "https://ctrlf-website.github.io/Ctrl-f",
+  "https://ctrlf-website.github.io",
 ];
 
 app.use(
   cors({
     origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Authorization", "Content-Type"],
     credentials: true,
   })
 );
 
 // ✅ Permitir preflight manualmente (a veces Express no responde solo)
-app.options(/.*/, cors());
+app.options(
+  "*",
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Authorization", "Content-Type"],
+    credentials: true,
+  })
+);
 
 // Ahora sí, parsear JSON
 app.use(express.json());
