@@ -4,6 +4,7 @@ import crypto from "crypto";
 import path from "path";
 import { DeployModel } from "./deploy.model";
 import { JWT } from "google-auth-library";
+import fs from "fs";
 
 const gzip = promisify(zlib.gzip);
 
@@ -110,6 +111,21 @@ export class DeployService {
       const hash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
       const gzipped = await gzip(fileBuffer);
 
+      // Guardar gzip y raw para comparar
+      fs.writeFileSync(path.join("/tmp", "sample_raw.html"), fileBuffer);
+      fs.writeFileSync(path.join("/tmp", "sample_gzip.gz"), gzipped);
+      console.log("[DEBUG] raw bytes:", fileBuffer.length);
+      console.log("[DEBUG] gzipped bytes:", gzipped.length);
+
+      console.log(
+        "[DEBUG] hash raw:",
+        crypto.createHash("sha256").update(fileBuffer).digest("hex")
+      );
+      console.log(
+        "[DEBUG] hash gzipped:",
+        crypto.createHash("sha256").update(gzipped).digest("hex")
+      );
+
       // 5) call versions.populateFiles with mapping { "/index.html": hash }
       const populateUrl = `${FIREBASE_API_BASE}/sites/${uid}/versions/${versionId}:populateFiles`;
       const populateResp = await fetch(populateUrl, {
@@ -141,22 +157,14 @@ export class DeployService {
       if (uploadRequiredHashes.includes(hash)) {
         // upload to `${uploadUrlBase}/${hash}`
         const uploadUrl = `${uploadUrlBase}/${hash}`;
-
         const uploadResp = await fetch(uploadUrl, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/octet-stream",
-            "Content-Encoding": "gzip",
             "Content-Length": gzipped.length.toString(),
-
-            // ⚠️ Firebase-required headers
-            "X-Goog-Upload-Protocol": "raw",
-            "X-Goog-Upload-Content-Type": "text/html",
-            "X-Goog-Hash": `sha256=${hash}`,
-            "X-Goog-Content-Length-Range": "0,104857600",
           },
-          body: gzipped,
+          body: gzipped, // Buffer / Uint8Array
         });
 
         if (!uploadResp.ok) {
