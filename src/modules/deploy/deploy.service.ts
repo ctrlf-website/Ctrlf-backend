@@ -104,8 +104,11 @@ export class DeployService {
         throw new Error("Could not parse versionId from version response");
 
       // 4) gzip file and compute sha256 of gzipped content
+      // const gzipped = await gzip(fileBuffer);
+      // const hash = crypto.createHash("sha256").update(gzipped).digest("hex");
+
+      const hash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
       const gzipped = await gzip(fileBuffer);
-      const hash = crypto.createHash("sha256").update(gzipped).digest("hex");
 
       // 5) call versions.populateFiles with mapping { "/index.html": hash }
       const populateUrl = `${FIREBASE_API_BASE}/sites/${uid}/versions/${versionId}:populateFiles`;
