@@ -5,6 +5,7 @@ import path from "path";
 import { DeployModel } from "./deploy.model";
 import { JWT } from "google-auth-library";
 import fs from "fs";
+import { readFile } from "fs/promises";
 
 const gzip = promisify(zlib.gzip);
 
@@ -62,7 +63,7 @@ export class DeployService {
     // 1) write temp site (keeps compatibility with your model)
     const sitePath = await DeployModel.createTempSite(uid, html);
     const indexFilePath = path.join(sitePath, "index.html");
-    const fileBuffer = Buffer.from(html, "utf8");
+    const fileBuffer = await readFile(indexFilePath);
 
     // 2) get access token
     const accessToken = await getAccessToken();
