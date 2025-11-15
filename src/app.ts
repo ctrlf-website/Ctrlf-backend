@@ -9,7 +9,11 @@ dotenv.config();
 const app = express();
 
 // ✅ CORS antes que cualquier otro middleware
-const allowedOrigins = ["http://localhost:5173", "http://localhost:3001"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3001",
+  "https://ctrlf-website.github.io/Ctrl-f",
+];
 
 app.use(
   cors({
