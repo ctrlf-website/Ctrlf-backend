@@ -106,26 +106,12 @@ export class DeployService {
         throw new Error("Could not parse versionId from version response");
 
       // 4) gzip file and compute sha256 of gzipped content
-      // const gzipped = await gzip(fileBuffer);
-      // const hash = crypto.createHash("sha256").update(gzipped).digest("hex");
-
-      const hash = crypto.createHash("sha256").update(fileBuffer).digest("hex");
       const gzipped = await gzip(fileBuffer);
+      const hash = crypto.createHash("sha256").update(gzipped).digest("hex");
 
-      // Guardar gzip y raw para comparar
-      fs.writeFileSync(path.join("/tmp", "sample_raw.html"), fileBuffer);
+      // Guardar gzip y gzip para comparar
+      fs.writeFileSync(path.join("/tmp", "sample_gzip.html"), fileBuffer);
       fs.writeFileSync(path.join("/tmp", "sample_gzip.gz"), gzipped);
-      console.log("[DEBUG] raw bytes:", fileBuffer.length);
-      console.log("[DEBUG] gzipped bytes:", gzipped.length);
-
-      console.log(
-        "[DEBUG] hash raw:",
-        crypto.createHash("sha256").update(fileBuffer).digest("hex")
-      );
-      console.log(
-        "[DEBUG] hash gzipped:",
-        crypto.createHash("sha256").update(gzipped).digest("hex")
-      );
 
       // 5) call versions.populateFiles with mapping { "/index.html": hash }
       const populateUrl = `${FIREBASE_API_BASE}/sites/${uid}/versions/${versionId}:populateFiles`;
@@ -137,9 +123,15 @@ export class DeployService {
         },
         body: JSON.stringify({
           files: {
-            "/index.html": hash,
+            "/index.html": hash, // hash del GZIP
           },
         }),
+
+        // body: JSON.stringify({
+        //   files: {
+        //     "/index.html": hash,
+        //   },
+        // }),
       });
 
       if (!populateResp.ok) {
@@ -156,16 +148,17 @@ export class DeployService {
 
       // 6) upload files that are required (if our hash is required, upload gzipped buffer)
       if (uploadRequiredHashes.includes(hash)) {
-        // upload to `${uploadUrlBase}/${hash}`
         const uploadUrl = `${uploadUrlBase}/${hash}`;
+
         const uploadResp = await fetch(uploadUrl, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/octet-stream",
             "Content-Length": gzipped.length.toString(),
+            // NO poner content-encoding
           },
-          body: gzipped, // Buffer / Uint8Array
+          body: gzipped, // Firebase exige gzip
         });
 
         if (!uploadResp.ok) {
@@ -193,16 +186,13 @@ export class DeployService {
       }
 
       // 8) create a release for the version (deploy)
-      const releaseUrl = `${FIREBASE_API_BASE}/sites/${uid}/releases`;
+      const releaseUrl = `${FIREBASE_API_BASE}/sites/${uid}/releases?version_name=sites/${uid}/versions/${versionId}`;
       const releaseResp = await fetch(releaseUrl, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          versionName: versionName,
-        }),
       });
 
       if (!releaseResp.ok) {
