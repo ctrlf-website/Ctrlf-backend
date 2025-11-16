@@ -59,6 +59,44 @@ export class DeployService {
    * Deploy the provided HTML as a single-file site at SITE_ID === uid.
    * Returns the web.app URL.
    */
+static async ensureSiteExists(uid: string, accessToken: string) {
+  const projectId = DeployService.FIREBASE_PROJECT;
+
+  // 1) Check if site exists
+  const getUrl = `${FIREBASE_API_BASE}/projects/${projectId}/sites/${uid}`;
+  const getResp = await fetch(getUrl, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (getResp.ok) {
+    // El sitio existe
+    return;
+  }
+
+  if (getResp.status !== 404) {
+    const txt = await getResp.text();
+    throw new Error(`Error checking site existence: ${txt}`);
+  }
+
+  // 2) Create site: NO BODY. Solo query param.
+  const createUrl = `${FIREBASE_API_BASE}/projects/${projectId}/sites?siteId=${uid}`;
+
+  const createResp = await fetch(createUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!createResp.ok) {
+    const txt = await createResp.text();
+    throw new Error(`sites.create failed: ${createResp.status} ${txt}`);
+  }
+}
+
+
+
   static async deployToFirebase(uid: string, html: string): Promise<string> {
     // 1) write temp site (keeps compatibility with your model)
     const sitePath = await DeployModel.createTempSite(uid, html);
@@ -69,6 +107,8 @@ export class DeployService {
     const accessToken = await getAccessToken();
 
     try {
+      await DeployService.ensureSiteExists(uid, accessToken);
+
       // 3) create a new version for the site
       // endpoint: POST /v1beta1/sites/SITE_ID/versions
       const createVersionUrl = `${FIREBASE_API_BASE}/sites/${uid}/versions`;
