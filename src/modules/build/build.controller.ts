@@ -12,8 +12,6 @@ export class BuildController {
       const uid = req.user?.uid;
       if (!uid) throw new Error("Usuario no autenticado");
 
-      console.info(`[CONTROLLER build] -> init -> Generando sitio para ${uid}`);
-
       const html = await BuildService.buildUserSite(uid);
 
       res

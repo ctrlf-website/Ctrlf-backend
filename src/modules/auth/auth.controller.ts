@@ -30,15 +30,11 @@ export class AuthController {
   ): Promise<void> {
     try {
       const authHeader = req.headers.authorization;
-      console.log(
-        `[CONTROLLER] -> auth HEADERS -> ${authHeader} ${req.headers} ->`
-      );
 
       const idToken =
         authHeader && authHeader.startsWith("Bearer ")
           ? authHeader.split(" ")[1]
           : req.body.idToken;
-      console.log(`[CONTROLLER] -> ID token -> ${idToken}  ->`);
 
       if (!idToken) {
         const err = new Error("Token no provisto");

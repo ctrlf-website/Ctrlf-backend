@@ -9,8 +9,6 @@ export class DeployController {
       const uid = req.user?.uid;
       if (!uid) throw new Error("Usuario no autenticado");
 
-      console.log(`[CONTROLLER deploy] -> iniciando deploy para UID ${uid}`);
-
       // 1️⃣ Generar HTML con el módulo Build
       const html = await BuildService.buildUserSite(uid);
 
