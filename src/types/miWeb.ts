@@ -4,5 +4,6 @@ export interface MiWeb {
     textColor: string;
     textFamily: string;
     backgroundColor: string;
+    logoUrl?: string;
   };
 }

@@ -15,5 +15,9 @@ export const validateMiWeb = (data: any): MiWeb => {
     );
   }
 
+  if (header.logoUrl && typeof header.logoUrl !== "string") {
+    throw new Error("logoUrl debe ser string");
+  }
+
   return data as MiWeb;
 };

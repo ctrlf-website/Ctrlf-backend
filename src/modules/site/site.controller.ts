@@ -29,14 +29,40 @@ export class SiteController {
       const uid = req.user?.uid;
       if (!uid) throw new Error("Usuario no autenticado");
 
-      const { miWeb } = req.body;
+      // 1️⃣ Parsear JSON enviado en FormData
+      const raw = req.body.miWeb;
+      if (!raw) throw new Error("Falta el campo miWeb");
 
-      const validData = validateMiWeb(miWeb);
+      const miWebParsed = JSON.parse(raw);
 
-      const updatedSite = await SiteService.upsertUserSite(uid, validData);
+      // 2️⃣ Ejecutar validación del modelo
+      const validData = validateMiWeb(miWebParsed);
+
+      // 3️⃣ Imagen (opcional)
+      const file = req.file || null;
+
+      const updatedSite = await SiteService.upsertUserSite(
+        uid,
+        validData,
+        file
+      );
+
       res.status(200).json({ status: "ok", miWeb: updatedSite });
     } catch (error) {
       next(error);
     }
+    // try {
+    //   const uid = req.user?.uid;
+    //   if (!uid) throw new Error("Usuario no autenticado");
+
+    //   const { miWeb } = req.body;
+
+    //   const validData = validateMiWeb(miWeb);
+
+    //   const updatedSite = await SiteService.upsertUserSite(uid, validData);
+    //   res.status(200).json({ status: "ok", miWeb: updatedSite });
+    // } catch (error) {
+    //   next(error);
+    // }
   }
 }
