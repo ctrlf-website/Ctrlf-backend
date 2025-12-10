@@ -14,7 +14,7 @@ export class SiteController {
       if (!uid) throw new Error("Usuario no autenticado");
 
       const site = await SiteService.getUserSite(uid);
-      res.status(200).json({ status: "ok", miWeb: site });
+      res.status(200).json(site);
     } catch (error) {
       next(error);
     }
@@ -39,30 +39,21 @@ export class SiteController {
       const validData = validateMiWeb(miWebParsed);
 
       // 3️⃣ Imagen (opcional)
-      const file = req.file || null;
-
+      // const files = req.files as Express.Multer.File[] || []; // array de 0 a 10 archivos
+      const files = req.files as {
+        headerLogo?: Express.Multer.File[];
+        headerBackground?: Express.Multer.File[];
+        cardImages?: Express.Multer.File[];
+      };
       const updatedSite = await SiteService.upsertUserSite(
         uid,
         validData,
-        file
+        files
       );
 
-      res.status(200).json({ status: "ok", miWeb: updatedSite });
+      res.status(200).json(updatedSite);
     } catch (error) {
       next(error);
     }
-    // try {
-    //   const uid = req.user?.uid;
-    //   if (!uid) throw new Error("Usuario no autenticado");
-
-    //   const { miWeb } = req.body;
-
-    //   const validData = validateMiWeb(miWeb);
-
-    //   const updatedSite = await SiteService.upsertUserSite(uid, validData);
-    //   res.status(200).json({ status: "ok", miWeb: updatedSite });
-    // } catch (error) {
-    //   next(error);
-    // }
   }
 }

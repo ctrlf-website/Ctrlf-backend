@@ -3,7 +3,9 @@ export interface MiWeb {
     title: string;
     textColor: string;
     textFamily: string;
+    backgroundMode: string;
     backgroundColor: string;
     logoUrl?: string;
+    backgroundImageUrl?: string;
   };
 }

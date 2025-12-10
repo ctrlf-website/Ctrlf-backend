@@ -1,5 +1,4 @@
 import type { MiWeb } from "../../types/miWeb";
-
 /**
  * Genera una plantilla HTML simple y ligera a partir del objeto MiWeb.
  */
@@ -12,7 +11,15 @@ export function renderHTMLTemplate(miWeb: MiWeb): string {
     );
   }
 
-  const { title, textColor, textFamily, backgroundColor, logoUrl } = header;
+  const {
+    title,
+    textColor,
+    textFamily,
+    backgroundMode,
+    backgroundColor,
+    logoUrl,
+    backgroundImageUrl,
+  } = header;
 
   const styleBlock = `
   <style>
@@ -20,6 +27,9 @@ export function renderHTMLTemplate(miWeb: MiWeb): string {
       color: ${textColor};
       font-family: ${textFamily};
       background-color: ${backgroundColor};
+     background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
       padding: 1rem 2rem;
       display: flex;
       align-items: center;
@@ -52,7 +62,7 @@ export function renderHTMLTemplate(miWeb: MiWeb): string {
     ${styleBlock}
   </head>
   <body>
-    <header>
+    <header style="${backgroundMode == 'image' ? `background-image: url('${backgroundImageUrl || ""}')` : ''}">
       <div class="logo" data-src="${logoUrl || ""}" style="background-image: url('${logoUrl || ""}')"></div>
       <h1>${title}</h1>
     </header>
