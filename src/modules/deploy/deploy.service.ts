@@ -3,7 +3,8 @@ import zlib from "zlib";
 import crypto from "crypto";
 import path from "path";
 import { DeployModel } from "./deploy.model";
-import { JWT } from "google-auth-library";
+import { JWT, GoogleAuth } from "google-auth-library";
+import { getProjectId, isCloudRun } from "../../config/runtime";
 import fs from "fs";
 import { readFile } from "fs/promises";
 
@@ -16,86 +17,85 @@ const SCOPES = [
   "https://www.googleapis.com/auth/cloud-platform",
 ];
 
-function getServiceAccountFromEnv() {
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
-  const projectId = process.env.FIREBASE_PROJECT_ID;
+export async function getAccessToken(): Promise<string> {
+  // ☁️ Cloud Run → ADC
+  if (isCloudRun()) {
+    const auth = new GoogleAuth({ scopes: SCOPES });
+    const client = await auth.getClient();
+    const tokenResponse = await client.getAccessToken();
 
-  if (!clientEmail || !privateKey || !projectId) {
-    throw new Error(
-      "Missing Firebase service account env vars. Required: FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY, FIREBASE_PROJECT_ID"
-    );
+    if (!tokenResponse?.token) {
+      throw new Error("ADC access token not available");
+    }
+
+    return tokenResponse.token;
   }
 
-  return {
-    clientEmail,
-    privateKey: privateKey.replace(/\\n/g, "\n"),
-    projectId,
-  };
-}
+  // 💻 Local → env vars
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-async function getAccessToken() {
-  const { clientEmail, privateKey } = getServiceAccountFromEnv();
+  if (!clientEmail || !privateKey) {
+    throw new Error("Missing Firebase service account env vars (local)");
+  }
 
   const jwtClient = new JWT({
     email: clientEmail,
-    key: privateKey,
+    key: privateKey.replace(/\\n/g, "\n"),
     scopes: SCOPES,
   });
 
   const res = await jwtClient.authorize();
-  if (!res || !res.access_token) {
-    throw new Error("Failed to obtain access token for Firebase Hosting API");
+  if (!res?.access_token) {
+    throw new Error("Failed to obtain access token");
   }
+
   return res.access_token;
 }
 
 export class DeployService {
-  // PROJECT and site naming strategy
-  static FIREBASE_PROJECT =
-    process.env.FIREBASE_PROJECT_ID || getServiceAccountFromEnv().projectId;
-
+  static async getFirebaseProject(): Promise<string> {
+    return await getProjectId();
+  }
   /**
    * Deploy the provided HTML as a single-file site at SITE_ID === uid.
    * Returns the web.app URL.
    */
-static async ensureSiteExists(uid: string, accessToken: string) {
-  const projectId = DeployService.FIREBASE_PROJECT;
+  static async ensureSiteExists(uid: string, accessToken: string) {
+    const projectId = await DeployService.getFirebaseProject();
 
-  // 1) Check if site exists
-  const getUrl = `${FIREBASE_API_BASE}/projects/${projectId}/sites/${uid}`;
-  const getResp = await fetch(getUrl, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
+    // 1) Check if site exists
+    const getUrl = `${FIREBASE_API_BASE}/projects/${projectId}/sites/${uid}`;
+    const getResp = await fetch(getUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
 
-  if (getResp.ok) {
-    // El sitio existe
-    return;
+    if (getResp.ok) {
+      // El sitio existe
+      return;
+    }
+
+    if (getResp.status !== 404) {
+      const txt = await getResp.text();
+      throw new Error(`Error checking site existence: ${txt}`);
+    }
+
+    // 2) Create site: NO BODY. Solo query param.
+    const createUrl = `${FIREBASE_API_BASE}/projects/${projectId}/sites?siteId=${uid}`;
+
+    const createResp = await fetch(createUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!createResp.ok) {
+      const txt = await createResp.text();
+      throw new Error(`sites.create failed: ${createResp.status} ${txt}`);
+    }
   }
-
-  if (getResp.status !== 404) {
-    const txt = await getResp.text();
-    throw new Error(`Error checking site existence: ${txt}`);
-  }
-
-  // 2) Create site: NO BODY. Solo query param.
-  const createUrl = `${FIREBASE_API_BASE}/projects/${projectId}/sites?siteId=${uid}`;
-
-  const createResp = await fetch(createUrl, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-  });
-
-  if (!createResp.ok) {
-    const txt = await createResp.text();
-    throw new Error(`sites.create failed: ${createResp.status} ${txt}`);
-  }
-}
-
-
 
   static async deployToFirebase(uid: string, html: string): Promise<string> {
     // 1) write temp site (keeps compatibility with your model)
@@ -166,18 +166,12 @@ static async ensureSiteExists(uid: string, accessToken: string) {
             "/index.html": hash, // hash del GZIP
           },
         }),
-
-        // body: JSON.stringify({
-        //   files: {
-        //     "/index.html": hash,
-        //   },
-        // }),
       });
 
       if (!populateResp.ok) {
         const txt = await populateResp.text();
         throw new Error(
-          `versions.populateFiles failed: ${populateResp.status} ${txt}`
+          `versions.populateFiles failed: ${populateResp.status} ${txt}`,
         );
       }
 
@@ -221,7 +215,7 @@ static async ensureSiteExists(uid: string, accessToken: string) {
       if (!finalizeResp.ok) {
         const txt = await finalizeResp.text();
         throw new Error(
-          `versions.patch FINALIZE failed: ${finalizeResp.status} ${txt}`
+          `versions.patch FINALIZE failed: ${finalizeResp.status} ${txt}`,
         );
       }
 
@@ -248,11 +242,11 @@ static async ensureSiteExists(uid: string, accessToken: string) {
     } catch (err: any) {
       // keep temp files for debugging if you want (optional)
       console.error(
-        `[DeployService] deployToFirebase error: ${err?.message || err}`
+        `[DeployService] deployToFirebase error: ${err?.message || err}`,
       );
       // rethrow to preserve your current controller behavior
       throw new Error(
-        "Fallo al desplegar el sitio: " + (err?.message || String(err))
+        "Fallo al desplegar el sitio: " + (err?.message || String(err)),
       );
     }
   }
