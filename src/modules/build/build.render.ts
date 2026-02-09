@@ -7,7 +7,7 @@ export function renderHTMLTemplate(miWeb: MiWeb): string {
 
   if (!header) {
     throw new Error(
-      "[RENDERER build] -> missing -> header section no definida"
+      "[RENDERER build] -> missing -> header section no definida",
     );
   }
 
@@ -54,47 +54,133 @@ export function renderHTMLTemplate(miWeb: MiWeb): string {
 
   const html = `
   <!DOCTYPE html>
-  <html lang="es">
+<html lang="es">
   <head>
+    <!-- Basic -->
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>${title}</title>
-    ${styleBlock}
-  </head>
-  <body>
-    <header style="${backgroundMode == 'image' ? `background-image: url('${backgroundImageUrl || ""}')` : ''}">
-      <div class="logo" data-src="${logoUrl || ""}" style="background-image: url('${logoUrl || ""}')"></div>
-      <h1>${title}</h1>
-    </header>
-    <script>
-      (function(){
-        const placeholder = 'https://res.cloudinary.com/dmieiirut/image/upload/v1764709159/ctrl-f-images/knsquqbd3oqa3utddip2.png';
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        function checkUrl(url, onMissing){
-          if(!url){ onMissing(); return; }
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = function(){};
-          img.onerror = function(){ onMissing(); };
-          img.src = url;
-        }
+    <!-- SEO -->
+    <title>{{title}}</title>
+    <meta
+      name="description"
+      content="{{title}} — sitio web oficial"
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="{{siteUrl}}" />
 
-        // Replace background-image logos
-        document.querySelectorAll('.logo[data-src]').forEach(function(el){
-          const url = el.getAttribute('data-src');
-          checkUrl(url, function(){ el.style.backgroundImage = "url('" + placeholder + "')"; });
-        });
-
-        // Also handle <img data-src="..."> elements: swap to placeholder on error
-        document.querySelectorAll('img[data-src]').forEach(function(img){
-          const url = img.getAttribute('data-src');
-          checkUrl(url, function(){ img.src = placeholder; });
-        });
-      })();
+    <!-- Structured Data (IA + SEO) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "{{title}}",
+        "url": "{{siteUrl}}"
+      }
     </script>
+
+    <!-- Critical CSS -->
+    <style>
+      :root {
+        --text-color: {{textColor}};
+        --bg-color: {{backgroundColor}};
+        --font-family: {{textFamily}};
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-family);
+        color: var(--text-color);
+        background-color: #ffffff;
+        line-height: 1.5;
+      }
+
+      header {
+        background-color: var(--bg-color);
+        background-image: {{backgroundImage}};
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding: 1rem 2rem;
+      }
+
+      .header-content {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .site-logo {
+        width: 60px;
+        height: 60px;
+        flex-shrink: 0;
+      }
+
+      .site-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin: 0;
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+
+      footer {
+        padding: 1rem 2rem;
+        font-size: 0.875rem;
+        color: #666;
+        text-align: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Header / Branding -->
+    <header>
+      <div class="header-content">
+        <div class="site-logo">
+          <img
+            src="{{logoUrl}}"
+            alt="Logo de {{title}}"
+            loading="eager"
+            onerror="this.src='{{placeholderLogo}}'"
+          />
+        </div>
+        <h1>{{title}}</h1>
+      </div>
+    </header>
+
+    <!-- Main content -->
+    <main>
+      <section>
+        <p>
+          Bienvenido al sitio oficial de <strong>{{title}}</strong>.
+        </p>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <p>
+        © {{currentYear}} {{title}}. Todos los derechos reservados.
+      </p>
+    </footer>
   </body>
-  </html>
-  `;
+</html>`;
 
   console.info(`[RENDERER build] -> success -> HTML generado correctamente`);
   return html.trim();
